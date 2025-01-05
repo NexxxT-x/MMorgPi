@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click & Farm</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .button { padding: 10px 20px; background-color: green; color: white; border: none; cursor: pointer; margin: 10px; }
+        .stats { margin-top: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>Click & Farm MMORPG</h1>
+    <div>
+        <input type="text" id="username" placeholder="Enter Username">
+        <button onclick="registerPlayer()">Register</button>
+    </div>
+    <div id="game" style="display: none;">
+        <button class="button" onclick="clickFarm()">Click</button>
+        <button class="button" onclick="harvest()">Harvest</button>
+        <div class="stats">
+            <p id="coins">Coins: 0</p>
+            <p id="farm-level">Farm Level: 1</p>
+        </div>
+    </div>
+    <script>
+        const API_URL = "http://localhost:5000";
+        let username = "";
+
+        async function registerPlayer() {
+            username = document.getElementById("username").value;
+            if (!username) return alert("Please enter a username!");
+
+            const response = await fetch(`${API_URL}/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username })
+            });
+
+            if (response.ok) {
+                document.getElementById("game").style.display = "block";
+                loadPlayer();
+            } else {
+                const error = await response.json();
+                alert(error.error);
+            }
+        }
+
+        async function loadPlayer() {
+            const response = await fetch(`${API_URL}/player/${username}`);
+            const player = await response.json();
+            if (response.ok) {
+                document.getElementById("coins").innerText = `Coins: ${player.coins}`;
+                document.getElementById("farm-level").innerText = `Farm Level: ${player.farm_level}`;
+            }
+        }
+
+        async function clickFarm() {
+            const response = await fetch(`${API_URL}/click/${username}`, { method: "POST" });
+            if (response.ok) loadPlayer();
+        }
+
+        async function harvest() {
+            const response = await fetch(`${API_URL}/harvest/${username}`, { method: "POST" });
+            if (response.ok) loadPlayer();
+            else {
+                const error = await response.json();
+                alert(error.error);
+            }
+        }
+    </script>
+</body>
+</html>
